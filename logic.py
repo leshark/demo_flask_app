@@ -24,14 +24,14 @@ def index():
 
 
 def pre_sign_in():
-    resp = request.get_json()
+    resp = request.json
 
     login = resp.get("l")
     password = resp.get("p")
 
     user = User.query.filter_by(login=login).first()
     if user is not None and user.has_correct_password(password):
-        # session["logged_in"] = True
+        session["logged_in"] = True
         return jsonify({"message": "You have logged in successfully", "status": 0})
     else:
         return jsonify({"message": "Wrong username or password. Try again", "status": 1})

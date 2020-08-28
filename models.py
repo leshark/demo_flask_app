@@ -10,7 +10,7 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     full_name = db.Column(db.String(120), unique=True)
-    login = db.Column(db.String(30), unique=True)
+    login = db.Column(db.String(64), unique=True)
     _password = db.Column(db.String(64))
 
     @hybrid_property

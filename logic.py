@@ -1,20 +1,9 @@
 from flask import request, render_template, jsonify, session, redirect, url_for
-from webargs import fields, validate, flaskparser
+from webargs import flaskparser
 
-from csrf import generate_csrf_token, validate_csrf_token
+from csrf import generate_csrf_token
 from models import db, User
-
-
-def validate_field(text):
-    """xss prevention"""
-    return not any(symbol in text for symbol in [">", "<", "&", "'", "\""])
-
-
-FORM_ARGS = {
-    'f': fields.Str(required=True, validate=[validate.Length(min=1, max=120), validate_field]),
-    'l': fields.Str(required=True, validate=[validate.Length(min=8, max=64), validate_field]),
-    'p': fields.Str(required=True, validate=[validate.Length(min=8, max=64)])
-}
+from validators import require_csrf_token, FORM_ARGS
 
 
 def index():
@@ -23,6 +12,7 @@ def index():
     return render_template("start.html", csrf_token=generate_csrf_token)
 
 
+@require_csrf_token
 def pre_sign_in():
     resp = request.json
 
@@ -42,12 +32,8 @@ def sign_in():
     return redirect(url_for("index"))
 
 
+@require_csrf_token
 def register():
-    csrf_token = request.headers.get("X-CSRFToken")
-
-    if not validate_csrf_token(csrf_token):
-        return jsonify({"message": "CSRF token error", "status": 1})
-
     parsed_args = flaskparser.parser.parse(FORM_ARGS, request, location="json")
 
     full_name = parsed_args.get("f")
